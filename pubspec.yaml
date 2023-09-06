@@ -31,9 +31,12 @@ dependencies:
   cupertino_icons: ^1.0.2
   dartz: ^0.10.1
   either_dart: ^1.0.0
+  firebase_auth: ^4.9.0
+  firebase_core: ^2.15.1
   flutter:
     sdk: flutter
   freezed_annotation: ^2.4.1
+  google_sign_in: ^6.1.5
 
 dev_dependencies:
   bloc: ^8.1.2
