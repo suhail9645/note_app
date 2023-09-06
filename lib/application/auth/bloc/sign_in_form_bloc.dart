@@ -30,21 +30,15 @@ class SignInFormBloc extends Bloc<SignInFormEvent, SignInFormState> {
             authFailureOrSuccessOption: none());
       },
       registerWithEmailAndPasswordPressed: (value) async* {
-        bool isEmailValid = state.emailAddress.isValid();
-        bool isPasswordValid = state.password.isValid();
-        if (isEmailValid && isPasswordValid) {
-          yield state.copyWith(
-              isSubmitting: true, authFailureOrSuccessOption: none());
-          final failureOrSuccess =
-              await _authFacade.registerWithEmailAndPassword(
-                  emailAddress: state.emailAddress, password: state.password);
-          yield state.copyWith(
-              isSubmitting: false,
-              authFailureOrSuccessOption: some(failureOrSuccess));
-        }
-        yield state.copyWith(showErrorMessage: true,authFailureOrSuccessOption: none());
+        yield* _performOnAuthFacadeWithEmailAndPassword(
+          _authFacade.registerWithEmailAndPassword,
+        );
       },
-      signInWithEmailAndPasswordPressed: (value) async* {},
+      signInWithEmailAndPasswordPressed: (value) async* {
+        yield* _performOnAuthFacadeWithEmailAndPassword(
+          _authFacade.signInWithEmailAndPassword,
+        );
+      },
       signInWithGooglePressed: (value) async* {
         yield state.copyWith(
             isSubmitting: true, authFailureOrSuccessOption: none());
@@ -54,5 +48,24 @@ class SignInFormBloc extends Bloc<SignInFormEvent, SignInFormState> {
             authFailureOrSuccessOption: some(filureOrSuccess));
       },
     );
+  }
+
+  Stream<SignInFormState> _performOnAuthFacadeWithEmailAndPassword(
+      Future<Either<AuthFailure, Unit>> Function(
+              {required EmailAddress emailAddress, required Password password})
+          forwardedCall) async* {
+    bool isEmailValid = state.emailAddress.isValid();
+    bool isPasswordValid = state.password.isValid();
+    Either<AuthFailure, Unit>? failureOrSuccess;
+    if (isEmailValid && isPasswordValid) {
+      yield state.copyWith(
+          isSubmitting: true, authFailureOrSuccessOption: none());
+      failureOrSuccess = await forwardedCall(
+          emailAddress: state.emailAddress, password: state.password);
+    }
+    yield state.copyWith(
+        showErrorMessage: true,
+        isSubmitting: false,
+        authFailureOrSuccessOption: optionOf(failureOrSuccess));
   }
 }
